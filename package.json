@@ -1,0 +1,27 @@
+{
+  "name": "veriff-integration",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vijay-gawariya/veriff-integration.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/vijay-gawariya/veriff-integration/issues"
+  },
+  "homepage": "https://github.com/vijay-gawariya/veriff-integration#readme",
+  "dependencies": {
+    "body-parser": "^1.20.1",
+    "express": "^4.18.2",
+    "node-fetch": "^3.3.0",
+    "nodemon": "^2.0.20"
+  }
+}
