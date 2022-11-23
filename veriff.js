@@ -1,7 +1,7 @@
 // TODO: 1. common count all request's with secret key
 
 const crypto = require("crypto");
-const fetch = () => require('node-fetch');
+const request = require("request-promise");
 const Config = require("./config");
 
 const generateSignature = (payload, secret) => {
@@ -30,6 +30,10 @@ const generateSignature = (payload, secret) => {
  */
 const start = async (person, document) => {
     try {
+        if (!person)
+            throw new Error("Person details are required.")
+        else if (!document)
+            throw new Error("Document details are required.")
         const payload = {
             verification: {
                 person, document, lang: 'en',
@@ -38,15 +42,19 @@ const start = async (person, document) => {
             }
         };
 
-        const headers = {
-            'x-auth-client': Config.apiToken,
-            'x-signature': generateSignature(payload, Config.apiSecret),
-            'content-type': 'application/json'
+        const options = {
+            method: 'POST',
+            uri: Config.apiUrl + '/sessions/',
+            headers: {
+                'x-auth-client': Config.apiToken,
+                'x-signature': generateSignature(payload, Config.apiSecret),
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload),
+            json: true,
         };
-
-        const options = { method: 'POST', headers: headers, body: JSON.stringify(payload) };
-        const response = await fetch()(Config.apiUrl + '/sessions', options);
-        return await response.json();
+        console.log(`options:${JSON.stringify(options)}`);
+        return request(options);
     }
     catch (err) {
         console.log('veriff start function', err);
@@ -63,16 +71,19 @@ const upload = async (verificationId, file) => {
             }
         };
 
-        const headers = {
-            'x-auth-client': Config.apiToken,
-            'x-signature': generateSignature(payload, Config.apiSecret),
-            'content-type': 'application/json'
+        const options = {
+            method: 'POST',
+            uri: Config.apiUrl + '/sessions/' + verificationId + '/media',
+            headers: {
+                'x-auth-client': Config.apiToken,
+                'x-signature': generateSignature(payload, Config.apiSecret),
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload),
+            json: true,
         };
-
-        const options = { method: 'POST', headers: headers, body: JSON.stringify(payload) };
-        const response = await fetch()(Config.apiUrl + '/sessions/' + verificationId + '/media', options);
-        const json = await response.json();
-        return response;
+        console.log(`options:${JSON.stringify(options)}`);
+        return request(options);
     }
     catch (err) {
         console.log('veriff upload function', err);
@@ -82,17 +93,41 @@ const upload = async (verificationId, file) => {
 
 const getMedia = async (verificationId) => {
     try {
-        const headers = {
-            'x-auth-client': Config.apiToken,
-            'x-signature': generateSignature(verificationId, Config.apiSecret)
+        const options = {
+            method: 'GET',
+            uri: Config.apiUrl + '/sessions/' + verificationId + '/media',
+            headers: {
+                'x-auth-client': Config.apiToken,
+                'x-signature': generateSignature(verificationId, Config.apiSecret),
+                'Content-Type': 'application/json'
+            },
+            json: true,
         };
-
-        const options = { method: 'GET', headers: headers };
-        const response = await fetch()(Config.apiUrl + '/sessions/' + verificationId + '/media', options);
-        return await response.json();
+        console.log(`options:${JSON.stringify(options)}`);
+        return request(options);
     }
     catch (err) {
         console.log('Veriff getMedia function', err);
+    }
+}
+
+const getProofOfAddress = async (verificationId) => {
+    try {
+        const options = {
+            method: 'GET',
+            uri: Config.apiUrl + '/attempts/' + verificationId + '/proof-of-address',
+            headers: {
+                'x-auth-client': Config.apiToken,
+                'x-signature': generateSignature(verificationId, Config.apiSecret),
+                'Content-Type': 'application/json'
+            },
+            json: true,
+        };
+        console.log(`options:${JSON.stringify(options)}`);
+        return request(options);
+    }
+    catch (err) {
+        console.log('Veriff getProofOfAddress function', err);
     }
 }
 
@@ -100,17 +135,19 @@ async function end(verificationId) {
     try {
         const payload = { verification: { frontState: 'done', status: 'submitted', timestamp: timestamp() } };
 
-        const headers = {
-            'x-auth-client': Config.apiToken,
-            'x-signature': generateSignature(payload, Config.apiSecret),
-            'content-type': 'application/json'
+        const options = {
+            method: 'PATCH',
+            uri: Config.apiUrl + '/sessions/' + verificationId,
+            headers: {
+                'x-auth-client': Config.apiToken,
+                'x-signature': generateSignature(payload, Config.apiSecret),
+                'Content-Type': 'application/json'
+            },
+            json: true,
         };
-
-        const options = { method: 'PATCH', headers: headers, body: JSON.stringify(payload) };
-        const response = await fetch()(Config.apiUrl + '/sessions/' + verificationId, options);
-        return await response.json();
-    }
-    catch (err) {
+        console.log(`options:${JSON.stringify(options)}`);
+        return request(options);
+    } catch (err) {
         console.log('done method error', err);
     }
 }
@@ -127,5 +164,6 @@ module.exports = {
     start,
     upload,
     getMedia,
+    getProofOfAddress,
     end
 }
